@@ -25,7 +25,7 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
 
   private EnemyDown enemyDown;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
-  private int gameTime = 20;
+
 
   public EnemyDownCommand(EnemyDown enemyDown) {
     this.enemyDown = enemyDown;
@@ -33,36 +33,31 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
 
 
   @Override
-  /**空腹時に回復できる**/
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
     if (sender instanceof Player player) {
-      if (playerScoreList.isEmpty()) {
-        addNewPlayer(player);
-      } else {
-        for (PlayerScore playerScore : playerScoreList) {
-          if (!playerScore.getPlayerName().equals(player.getName())) {
-            addNewPlayer(player);
-          }
-        }
-      }
-      gameTime = 20;
+      PlayerScore nowPlayer = getPlayerScore(player);
+      nowPlayer.setGameTime(20);
       World world = player.getWorld();
 
       initPlayerStatus(player);
 
       Bukkit.getScheduler().runTaskTimer(enemyDown, Runnable -> {
-        if (gameTime <= 0) {
+        if (nowPlayer.getGameTime() <= 0) {
           Runnable.cancel();
-          player.sendMessage("ゲームが終了しました！");
+          player.sendTitle("ゲームが終了しました",
+              nowPlayer.getPlayerName() + "合計" + nowPlayer.getScore() + "点!",
+              0, 30, 0);
+          nowPlayer.setScore(0);
           return;
         }
         world.spawnEntity(getEnemySpawnLocation(player, world), getEnemy());
-        gameTime -= 5;
+        nowPlayer.setGameTime(nowPlayer.getGameTime() - 5);
       }, 0, 5 * 20);
     }
     return false;
   }
+
 
   @EventHandler
   public void onEnemyDeath(EntityDeathEvent e) {
@@ -80,14 +75,37 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
   }
 
   /**
+   * 現在実行しているプレーヤーの情報を取得する。
+   *
+   * @param player コマンドを実行したプレイヤー
+   * @return 現在実行しているプレイヤーのスコア情報
+   **/
+  private PlayerScore getPlayerScore(Player player) {
+    if (playerScoreList.isEmpty()) {
+      return addNewPlayer(player);
+    } else {
+      for (PlayerScore playerScore : playerScoreList) {
+        if (!playerScore.getPlayerName().equals(player.getName())) {
+          return addNewPlayer(player);
+        } else {
+          return playerScore;
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
    * 新規のプレイヤー情報をリストに追加
    *
    * @param player コマンドを実行したプレイヤー情報
+   * @return 新規プレイヤー
    **/
-  private void addNewPlayer(Player player) {
+  private PlayerScore addNewPlayer(Player player) {
     PlayerScore newPlayer = new PlayerScore();
     newPlayer.setPlayerName(player.getName());
     playerScoreList.add(newPlayer);
+    return newPlayer;
   }
 
   /**
