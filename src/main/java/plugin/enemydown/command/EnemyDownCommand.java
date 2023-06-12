@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.SplittableRandom;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -17,16 +18,24 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import plugin.enemydown.EnemyDown;
 import plugin.enemydown.data.PlayerScore;
 
 public class EnemyDownCommand implements CommandExecutor, Listener {
 
+  private EnemyDown enemyDown;
   private List<PlayerScore> playerScoreList = new ArrayList<>();
+  private int gameTime = 20;
+
+  public EnemyDownCommand(EnemyDown enemyDown) {
+    this.enemyDown = enemyDown;
+  }
 
 
   @Override
   /**空腹時に回復できる**/
   public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
     if (sender instanceof Player player) {
       if (playerScoreList.isEmpty()) {
         addNewPlayer(player);
@@ -37,13 +46,20 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
           }
         }
       }
-
+      gameTime = 20;
       World world = player.getWorld();
 
-      //プレイヤーの状態を初期化(体力と空腹度を最大値にする)
       initPlayerStatus(player);
 
-      world.spawnEntity(getEnemySpawnLocation(player, world), getEnemy());
+      Bukkit.getScheduler().runTaskTimer(enemyDown, Runnable -> {
+        if (gameTime <= 0) {
+          Runnable.cancel();
+          player.sendMessage("ゲームが終了しました！");
+          return;
+        }
+        world.spawnEntity(getEnemySpawnLocation(player, world), getEnemy());
+        gameTime -= 5;
+      }, 0, 5 * 20);
     }
     return false;
   }
@@ -84,11 +100,11 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
     player.setFoodLevel(20);
 
     PlayerInventory inventory = player.getInventory();
-    inventory.setHelmet(new ItemStack(Material.DIAMOND_HELMET));
-    inventory.setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
-    inventory.setLeggings(new ItemStack(Material.DIAMOND_LEGGINGS));
-    inventory.setBoots(new ItemStack(Material.DIAMOND_BOOTS));
-    inventory.setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+    inventory.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
+    inventory.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+    inventory.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
+    inventory.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
+    inventory.setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
   }
 
 
