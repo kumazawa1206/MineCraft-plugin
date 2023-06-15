@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -48,8 +49,14 @@ public class EnemyDownCommand implements CommandExecutor, Listener {
           Runnable.cancel();
           player.sendTitle("ゲームが終了しました",
               nowPlayer.getPlayerName() + "合計" + nowPlayer.getScore() + "点!",
-              0, 30, 0);
+              0, 45, 0);
           nowPlayer.setScore(0);
+          List<Entity> nearbyEnemies = player.getNearbyEntities(50, 0, 50);
+          for (Entity enemy : nearbyEnemies) {
+            switch (enemy.getType()) {
+              case ZOMBIE, SKELETON, WITCH -> enemy.remove();
+            }
+          }
           return;
         }
         world.spawnEntity(getEnemySpawnLocation(player, world), getEnemy());
