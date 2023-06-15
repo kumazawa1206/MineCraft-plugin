@@ -4,3 +4,4 @@ main: plugin.enemydown.EnemyDown
 api-version: 1.19
 commands:
   enemyDown:
+  enemySpawn:
