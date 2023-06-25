@@ -236,6 +236,21 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
             nowPlayerScore.getPlayerName() + "合計" + nowPlayerScore.getScore() + "点!",
             0, 60, 0);
 
+        try (Connection con = DriverManager.getConnection(
+            "",
+            "",
+            "");
+            Statement statement = con.createStatement()) {
+
+          statement.executeUpdate(
+              "insert player_score(player_name, score, difficulty, registered_at)"
+                  + "values('" + nowPlayerScore.getPlayerName() + "', " + nowPlayerScore.getScore()
+                  + ", '" + difficulty + "', now());");
+
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
+
         spanEntityList.forEach(Entity::remove);
         spanEntityList.clear();
 
