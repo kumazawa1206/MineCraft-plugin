@@ -1,11 +1,6 @@
 package plugin.enemydown.command;
 
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,15 +71,13 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
         PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
         List<PlayerScore> playerScoresList = mapper.selectList();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss");
         for (PlayerScore playerScore : playerScoresList) {
-          LocalDateTime date = LocalDateTime.parse(playerScore.getRegisteredAt(), formatter);
-
           player.sendMessage(playerScore.getId() + " | "
               + playerScore.getPlayerName() + " | "
               + playerScore.getScore() + " | "
               + playerScore.getDifficulty() + " | "
-              + date.format(formatter));
+              + playerScore.getRegisteredAt()
+              .format(DateTimeFormatter.ofPattern("yyy-MM-dd HH:mm:ss")));
         }
       }
       return false;
@@ -244,26 +237,19 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
             nowExecutingPlayer.getPlayerName() + "合計" + nowExecutingPlayer.getScore() + "点!",
             0, 60, 0);
 
-        try (Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/spigot_server",
-            "root",
-            "030102UTAmaru");
-            Statement statement = con.createStatement()) {
-
-          statement.executeUpdate(
-              "insert player_score(player_name, score, difficulty, registered_at)"
-                  + "values('" + nowExecutingPlayer.getPlayerName() + "', "
-                  + nowExecutingPlayer.getScore()
-                  + ", '" + difficulty + "', now());");
-
-        } catch (SQLException e) {
-          e.printStackTrace();
-        }
-
         spanEntityList.forEach(Entity::remove);
         spanEntityList.clear();
 
         removePotionEffect(player);
+
+        //スコア登録処理
+        try (SqlSession session = sqlSessionFactory.openSession(true)) {
+          PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
+          mapper.insert(new PlayerScore(nowExecutingPlayer.getPlayerName()
+              , nowExecutingPlayer.getScore()
+              , difficulty));
+        }
+
         return;
       }
       Entity spawnEntity = player.getWorld()
