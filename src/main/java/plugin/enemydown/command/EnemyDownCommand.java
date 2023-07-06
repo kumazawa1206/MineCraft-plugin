@@ -33,15 +33,18 @@ import plugin.enemydown.mapper.data.PlayerScore;
 public class EnemyDownCommand extends BaseCommand implements Listener {
 
   public static final int GAME_TIME = 20;
+
   public static final String EASY = "easy";
   public static final String NORMAL = "normal";
   public static final String HARD = "hard";
   public static final String NONE = "none";
   public static final String LIST = "list";
-  private EnemyDown enemyDown;
-  private PlayerScoreData playerScoreData = new PlayerScoreData();
-  private List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
-  private List<Entity> spanEntityList = new ArrayList<>();
+  private final EnemyDown enemyDown;
+
+  private final PlayerScoreData playerScoreData = new PlayerScoreData();
+
+  private final List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
+  private final List<Entity> spanEntityList = new ArrayList<>();
 
 
   public EnemyDownCommand(EnemyDown enemyDown) {
@@ -98,9 +101,9 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
    *
    * @param player 　コマンドを実行したプレイヤー
    * @param args   　コマンド引数
-   * @return　難易度
+   * @return 難易度
    */
-  private String getDifficulty(Player player, String[] args) {
+  String getDifficulty(Player player, String[] args) {
     if (args.length == 1 &&
         (EASY.equals(args[0]) || NORMAL.equals(args[0]) || HARD.equals(args[0]))) {
       return args[0];
@@ -249,7 +252,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
    * 敵の出現エリアを取得
    *
    * @param player 　コマンドを実行したプレイヤー
-   * @return　敵の出現場所
+   * @return 敵の出現場所
    */
 
   private Location getEnemySpawnLocation(Player player) {
@@ -268,7 +271,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener {
    * ランダムで敵を出現させる
    *
    * @param difficulty 難易度
-   * @return　敵
+   * @return 敵
    */
   private EntityType getEnemy(String difficulty) {
     List<EntityType> enemyList = switch (difficulty) {
